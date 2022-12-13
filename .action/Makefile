@@ -23,5 +23,5 @@ $(TARBALL): $(TARGET) dist/$(CHIP_JSON)
 dist/$(CHIP_JSON):
 	cp $(CHIP_JSON) dist/chip.json
 
-$(LIB): dist $(SOURCES)
-	  clang --target=wasm32-unknown-wasi --sysroot /opt/wasi-libc -nostartfiles -Wl,--import-memory -Wl,--export-table -Wl,--no-entry -Werror  $(INCLUDES) -o $(LIB) $(SOURCES)
+$(TARGET): dist $(SOURCES)
+	  clang --target=wasm32-unknown-wasi --sysroot /opt/wasi-libc -nostartfiles -Wl,--import-memory -Wl,--export-table -Wl,--no-entry -Werror  $(INCLUDES) -o $(TARGET) $(SOURCES)
