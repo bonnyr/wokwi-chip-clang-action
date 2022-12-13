@@ -14,13 +14,15 @@ all: clean $(TARBALL)
 .PHONY: clean
 clean:
 		rm -rf dist
+
 dist:
 		mkdir -p dist
 
-$(TARBALL): $(TARGET) dist/$(CHIP_JSON)
-	tar xzf $(TARBALL) $(TARGET) dist/chip.json
+$(TARBALL): $(TARGET) dist/chip.json
+	ls -l dist
+	tar czf $(TARBALL) $(TARGET) dist/chip.json
 
-dist/$(CHIP_JSON):
+dist/chip.json:
 	cp $(CHIP_JSON) dist/chip.json
 
 $(TARGET): dist $(SOURCES)
