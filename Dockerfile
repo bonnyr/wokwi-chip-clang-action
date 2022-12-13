@@ -11,4 +11,7 @@ RUN mkdir -p /usr/lib/clang/13.0.1/lib/wasi && \
     wget -O /usr/lib/clang/13.0.1/lib/wasi/libclang_rt.builtins-wasm32.a https://github.com/jedisct1/libclang_rt.builtins-wasm32.a/blob/master/precompiled/libclang_rt.builtins-wasm32.a?raw=true
 
 COPY entrypoint.sh /entrypoint.sh
+COPY .action /.action
 ENTRYPOINT ["/entrypoint.sh"]
+
+RUN ls -l / .action
