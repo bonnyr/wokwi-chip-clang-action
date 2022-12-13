@@ -9,7 +9,7 @@ TARBALL  = dist/chip.tar.gz
 TARGET  = dist/chip.wasm
 
 .PHONY: all
-all: clean $(TARGET)
+all: clean $(TARBALL)
 
 .PHONY: clean
 clean:
