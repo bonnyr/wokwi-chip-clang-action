@@ -21,7 +21,7 @@ $(TARBALL): $(TARGET) dist/$(CHIP_JSON)
 	tar xzf $(TARBALL) $(TARGET) dist/chip.json
 
 dist/$(CHIP_JSON):
-	cp $(CHIP_JSON) dist
+	cp $(CHIP_JSON) dist/chip.json
 
 $(LIB): dist $(SOURCES)
 	  clang --target=wasm32-unknown-wasi --sysroot /opt/wasi-libc -nostartfiles -Wl,--import-memory -Wl,--export-table -Wl,--no-entry -Werror  $(INCLUDES) -o $(LIB) $(SOURCES)
