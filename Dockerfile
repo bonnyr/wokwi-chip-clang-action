@@ -1,25 +1,23 @@
-FROM alpine:3.16
-RUN apk update
-RUN apk add clang lld git make llvm
+# Prebuilt WASI toolchain: clang, wasi-libc sysroot and compiler-rt builtins
+# from one wasi-sdk release, so they always match each other.
+# To upgrade, change WASI_SDK_VERSION to a release listed at
+# https://github.com/WebAssembly/wasi-sdk/releases
+FROM debian:bookworm-slim
 
-# Pinned: wasi-libc's main branch moved to CMake and no longer has `make install`.
-# 4362b18 (Jan 2023) dates from when this action last built successfully.
-ARG WASI_LIBC_REV=4362b1885fd369e042a7c0ecd8df3b6cd47fb4e8
-RUN git clone https://github.com/WebAssembly/wasi-libc.git && \
-    cd /wasi-libc && \
-    git checkout ${WASI_LIBC_REV} && \
-    make install INSTALL_DIR=/opt/wasi-libc && \
-    rm -rf /wasi-libc
+ARG WASI_SDK_VERSION=34
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl make && \
+    rm -rf /var/lib/apt/lists/*
 
-# compiler-rt builtins for wasm32, from the wasi-sdk 14 release (LLVM 13, matching alpine 3.16's clang).
-# The previous download location (jedisct1/libclang_rt.builtins-wasm32.a) no longer exists.
-RUN mkdir -p /usr/lib/clang/13.0.1 && \
-    wget -O - https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-14/libclang_rt.builtins-wasm32-wasi-14.0.tar.gz \
-      | tar xzf - -C /usr/lib/clang/13.0.1 && \
-    ls -l /usr/lib/clang/13.0.1/lib/wasi/libclang_rt.builtins-wasm32.a
+RUN curl -fsSL https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_SDK_VERSION}/wasi-sdk-${WASI_SDK_VERSION}.0-x86_64-linux.tar.gz \
+      | tar xzf - -C /opt && \
+    mv /opt/wasi-sdk-${WASI_SDK_VERSION}.0-x86_64-linux /opt/wasi-sdk && \
+    # chip Makefiles use `clang --sysroot /opt/wasi-libc`: keep that path working
+    ln -s /opt/wasi-sdk/share/wasi-sysroot /opt/wasi-libc && \
+    /opt/wasi-sdk/bin/clang --version
+
+ENV PATH=/opt/wasi-sdk/bin:$PATH
 
 COPY entrypoint.sh /entrypoint.sh
 COPY .action /.action
 ENTRYPOINT ["/entrypoint.sh"]
-
-RUN ls -l / .action
