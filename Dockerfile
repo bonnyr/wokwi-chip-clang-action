@@ -2,8 +2,12 @@ FROM alpine:3.16
 RUN apk update
 RUN apk add clang lld git make llvm
 
-RUN git clone https://github.com/CraneStation/wasi-libc.git && \
+# Pinned: wasi-libc's main branch moved to CMake and no longer has `make install`.
+# 4362b18 (Jan 2023) dates from when this action last built successfully.
+ARG WASI_LIBC_REV=4362b1885fd369e042a7c0ecd8df3b6cd47fb4e8
+RUN git clone https://github.com/WebAssembly/wasi-libc.git && \
     cd /wasi-libc && \
+    git checkout ${WASI_LIBC_REV} && \
     make install INSTALL_DIR=/opt/wasi-libc && \
     rm -rf /wasi-libc
 
