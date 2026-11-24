@@ -1,17 +1,23 @@
-FROM alpine:3.16
-RUN apk update
-RUN apk add clang lld git make llvm
+# Prebuilt WASI toolchain: clang, wasi-libc sysroot and compiler-rt builtins
+# from one wasi-sdk release, so they always match each other.
+# To upgrade, change WASI_SDK_VERSION to a release listed at
+# https://github.com/WebAssembly/wasi-sdk/releases
+FROM debian:bookworm-slim
 
-RUN git clone https://github.com/CraneStation/wasi-libc.git && \
-    cd /wasi-libc && \
-    make install INSTALL_DIR=/opt/wasi-libc && \
-    rm -rf /wasi-libc
+ARG WASI_SDK_VERSION=34
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl make && \
+    rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /usr/lib/clang/13.0.1/lib/wasi && \
-    wget -O /usr/lib/clang/13.0.1/lib/wasi/libclang_rt.builtins-wasm32.a https://github.com/jedisct1/libclang_rt.builtins-wasm32.a/blob/master/precompiled/libclang_rt.builtins-wasm32.a?raw=true
+RUN curl -fsSL https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_SDK_VERSION}/wasi-sdk-${WASI_SDK_VERSION}.0-x86_64-linux.tar.gz \
+      | tar xzf - -C /opt && \
+    mv /opt/wasi-sdk-${WASI_SDK_VERSION}.0-x86_64-linux /opt/wasi-sdk && \
+    # chip Makefiles use `clang --sysroot /opt/wasi-libc`: keep that path working
+    ln -s /opt/wasi-sdk/share/wasi-sysroot /opt/wasi-libc && \
+    /opt/wasi-sdk/bin/clang --version
+
+ENV PATH=/opt/wasi-sdk/bin:$PATH
 
 COPY entrypoint.sh /entrypoint.sh
 COPY .action /.action
 ENTRYPOINT ["/entrypoint.sh"]
-
-RUN ls -l / .action
