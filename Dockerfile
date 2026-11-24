@@ -11,8 +11,12 @@ RUN git clone https://github.com/WebAssembly/wasi-libc.git && \
     make install INSTALL_DIR=/opt/wasi-libc && \
     rm -rf /wasi-libc
 
-RUN mkdir -p /usr/lib/clang/13.0.1/lib/wasi && \
-    wget -O /usr/lib/clang/13.0.1/lib/wasi/libclang_rt.builtins-wasm32.a https://github.com/jedisct1/libclang_rt.builtins-wasm32.a/blob/master/precompiled/libclang_rt.builtins-wasm32.a?raw=true
+# compiler-rt builtins for wasm32, from the wasi-sdk 14 release (LLVM 13, matching alpine 3.16's clang).
+# The previous download location (jedisct1/libclang_rt.builtins-wasm32.a) no longer exists.
+RUN mkdir -p /usr/lib/clang/13.0.1 && \
+    wget -O - https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-14/libclang_rt.builtins-wasm32-wasi-14.0.tar.gz \
+      | tar xzf - -C /usr/lib/clang/13.0.1 && \
+    ls -l /usr/lib/clang/13.0.1/lib/wasi/libclang_rt.builtins-wasm32.a
 
 COPY entrypoint.sh /entrypoint.sh
 COPY .action /.action
