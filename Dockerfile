@@ -16,14 +16,6 @@ RUN curl -fsSL https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sd
     ln -s /opt/wasi-sdk/share/wasi-sysroot /opt/wasi-libc && \
     /opt/wasi-sdk/bin/clang --version
 
-# Newer clang reports --target=wasm32-wasi (used by existing chip Makefiles) as
-# deprecated in favour of wasm32-wasip1, which -Werror turns into a failure.
-# Keep it a warning so those Makefiles still build.
-RUN echo '-Wno-error=deprecated' > /opt/wasi-sdk/bin/clang.cfg && \
-    printf 'int x;\n' > /tmp/t.c && \
-    /opt/wasi-sdk/bin/clang --target=wasm32-unknown-wasi --sysroot /opt/wasi-libc -Werror -c /tmp/t.c -o /tmp/t.o && \
-    rm /tmp/t.c /tmp/t.o
-
 ENV PATH=/opt/wasi-sdk/bin:$PATH
 
 COPY entrypoint.sh /entrypoint.sh
